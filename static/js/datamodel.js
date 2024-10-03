@@ -1,12 +1,13 @@
 // DESCRIPTION: the DataModel object is accessible by any other
 //scripts linked and loaded on the same page.  It handles all of the
-//communications with your api, and the goal is to store state information
+//communications with your API, and the goal is to store state information
 //and data in this object as well when possible, in order to minimize
 //API calls and to create a single point of access for data in the 
 //front-end of your app.
 
 const DataModel = {
-    items: [],  // Placeholder for data fetched from the API
+    users: [],  // Placeholder for users fetched from the API
+    selectedUser: null,  // Store the currently selected user
     baseUrl: `${window.location.protocol}//${window.location.host}/`,  // Base URL dynamically generated for API requests
 
     /**
@@ -47,21 +48,52 @@ const DataModel = {
         }
     },
 
-    //EXAMPLE - function to grab data from a route, store it in the object,
-    //and return it to the caller.
+    /**
+     * Function to get all users from the back-end API.
+     * This function will fetch all users and store them in the `users` variable within the object.
+     */
+    async getAllUsers() {
+        const url = this.baseUrl + 'users';  // Construct the full API URL for the GET users route
+        try {
+            const allUsers = await this.fetchWithAuth(url, { method: 'GET' });  // Send GET request to fetch all users
+            this.users = allUsers;  // Store the fetched users in the object
+            return allUsers;  // Return the list of users
+        } catch (error) {
+            console.error('Error fetching users:', error);  // Log any errors that occur
+            throw error;  // Rethrow the error so it can be handled elsewhere
+        }
+    },
 
-    //async getAllItems() {
-    //    const url = this.baseUrl + '<your route here>';  // Construct the full API URL
-    //    try {
-    //        const myItems = await this.fetchWithAuth(url, { method: 'GET' });  // Send GET request to fetch data
-    //        this.items= myItems;  // Store the fetched data in the object (optional) (note the variable items is defined above)
-    //        return myItems;  // Return the list of RoboChatters
-    //    } catch (error) {
-    //        console.error('Error fetching RoboChatters:', error);  // Log any errors that occur
-    //        throw error;  // Rethrow the error so it can be handled elsewhere
-    //    }
-    //},
+    /**
+     * Function to set the selected user by ID.
+     * This function takes a user ID and finds the corresponding user from the `users` array.
+     * @param {number} userId - The ID of the user to set as selected.
+     */
+    setSelectedUser(userId) {
+        this.selectedUser = this.users.find(user => user.id === userId);  // Find and set the selected user by ID
+        if (!this.selectedUser) {
+            console.warn(`User with ID ${userId} not found`);  // Warn if user is not found
+        }
+    },
 
+    /**
+     * Function to get the currently selected user.
+     * This function simply returns the `selectedUser` stored in the object.
+     * @returns {object|null} - The currently selected user or null if no user is selected.
+     */
+    getSelectedUser() {
+        return this.selectedUser;  // Return the selected user
+    },
 
+    /**
+     * Function to initialize the data model by fetching all users.
+     * This will call `getAllUsers` and store the result in the object.
+     */
+    async initializeDataModel() {
+        try {
+            await this.getAllUsers();  // Fetch all users and store them in the object
+        } catch (error) {
+            console.error('Error initializing data model:', error);  // Log any errors during initialization
+        }
+    }
 };
-
